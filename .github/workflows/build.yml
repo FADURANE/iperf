@@ -29,7 +29,10 @@ jobs:
           CXX=x86_64-w64-mingw32-g++ \
           AR=x86_64-w64-mingw32-ar \
           RANLIB=x86_64-w64-mingw32-ranlib \
+          LIBS="-lws2_32" \
           ./configure --host=x86_64-w64-mingw32 --disable-sctp
+
+
 
       - name: Build
         run: make -j$(nproc)
@@ -46,3 +49,4 @@ jobs:
           files: src/iperf3.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
