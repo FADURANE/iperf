@@ -1,0 +1,48 @@
+name: Build & Release iperf3 Windows exe
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential mingw-w64 autoconf automake libtool pkg-config
+
+      - name: Bootstrap
+        run: |
+          ./bootstrap.sh || true
+
+      - name: Configure for Windows (x64)
+        run: |
+          CC=x86_64-w64-mingw32-gcc \
+          CXX=x86_64-w64-mingw32-g++ \
+          AR=x86_64-w64-mingw32-ar \
+          RANLIB=x86_64-w64-mingw32-ranlib \
+          ./configure --host=x86_64-w64-mingw32 --disable-sctp
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iperf3-win64
+          path: src/iperf3.exe
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src/iperf3.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
